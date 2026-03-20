@@ -1,3 +1,5 @@
+import os
+
 import httpx
 from config import WHISPER_API_URL
 
@@ -23,7 +25,7 @@ async def transcribe_full(audio_path: str) -> dict:
         with open(audio_path, "rb") as f:
             response = await client.post(
                 f"{WHISPER_API_URL}/v1/audio/transcriptions",
-                files={"file": (audio_path.split("/")[-1], f, "audio/webm")},
+                files={"file": (os.path.basename(audio_path), f, "audio/webm")},
                 data={
                     "language": "de",
                     "response_format": "verbose_json",

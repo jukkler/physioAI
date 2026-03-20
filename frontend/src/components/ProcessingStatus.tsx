@@ -23,15 +23,27 @@ export function ProcessingStatus({ sessionId, onDone, onError }: ProcessingStatu
     summarization: 'pending',
   })
 
+  const MAX_POLLS = 300
+
   useEffect(() => {
     let active = true
+    let pollCount = 0
     const poll = async () => {
+      pollCount++
+      if (pollCount > MAX_POLLS) {
+        if (active) onError('Verarbeitung dauert zu lange. Bitte prüfen Sie den Server.')
+        return
+      }
       try {
         const status = await getStatus(sessionId)
         if (!active) return
         if (status.steps) setSteps(status.steps)
         if (status.status === 'done' && status.result_id) {
           onDone(status.result_id)
+          return
+        }
+        if (status.status === 'error') {
+          onError(status.error ?? 'Verarbeitung fehlgeschlagen')
           return
         }
         setTimeout(poll, 2000)

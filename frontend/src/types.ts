@@ -23,10 +23,11 @@ export interface ProcessingStep {
 
 export interface StatusResponse {
   session_id: string
-  status: 'recording' | 'processing' | 'done'
+  status: 'recording' | 'processing' | 'done' | 'error'
   step?: string
   steps?: ProcessingStep
   result_id?: string
+  error?: string
 }
 
 export interface Segment {

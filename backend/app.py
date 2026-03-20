@@ -1,4 +1,5 @@
 import asyncio
+import secrets
 import time
 from datetime import datetime
 
@@ -25,11 +26,12 @@ sessions: dict[str, dict] = {}
 
 def _generate_session_id() -> str:
     now = datetime.now()
-    return f"rec_{now.strftime('%Y%m%d_%H%M%S')}"
+    return f"rec_{now.strftime('%Y%m%d_%H%M%S')}_{secrets.token_hex(4)}"
 
 
 def _result_id_from_session(session_id: str) -> str:
-    return session_id.replace("rec_", "")
+    # Remove "rec_" prefix, keep timestamp + random suffix
+    return session_id[4:]
 
 
 @app.get("/api/health")
@@ -81,57 +83,68 @@ async def _run_pipeline(session_id: str, audio_bytes: bytes, filename: str):
     """Run transcription -> correction -> summarization in background."""
     session = sessions[session_id]
     result_id = _result_id_from_session(session_id)
-    whisper = get_whisper_service()
-    llm = get_llm_service()
-    processing_time = {}
 
-    # Save audio file
-    audio_path = save_upload(audio_bytes, result_id, filename)
+    try:
+        whisper = get_whisper_service()
+        llm = get_llm_service()
+        processing_time = {}
 
-    # Step 1: Transcription
-    session["steps"]["transcription"] = "processing"
-    session["step"] = "transcription"
-    t0 = time.time()
-    transcript_result = await whisper.transcribe_full(audio_path)
-    processing_time["transcription"] = round(time.time() - t0, 1)
-    session["steps"]["transcription"] = "done"
+        # Save audio file
+        audio_path = save_upload(audio_bytes, result_id, filename)
 
-    raw_transcript = transcript_result["text"]
-    segments = transcript_result["segments"]
-    duration = transcript_result["duration"]
+        # Step 1: Transcription
+        session["steps"]["transcription"] = "processing"
+        session["step"] = "transcription"
+        t0 = time.time()
+        transcript_result = await whisper.transcribe_full(audio_path)
+        processing_time["transcription"] = round(time.time() - t0, 1)
+        session["steps"]["transcription"] = "done"
 
-    # Step 2: Correction
-    session["steps"]["correction"] = "processing"
-    session["step"] = "correction"
-    t0 = time.time()
-    corrected_transcript = await llm.correct_transcript(raw_transcript)
-    processing_time["correction"] = round(time.time() - t0, 1)
-    session["steps"]["correction"] = "done"
+        raw_transcript = transcript_result["text"]
+        segments = transcript_result["segments"]
+        duration = transcript_result["duration"]
 
-    # Step 3: Summarization
-    session["steps"]["summarization"] = "processing"
-    session["step"] = "summarization"
-    t0 = time.time()
-    summary = await llm.summarize_transcript(corrected_transcript)
-    processing_time["summarization"] = round(time.time() - t0, 1)
-    session["steps"]["summarization"] = "done"
+        # Step 2: Correction
+        session["steps"]["correction"] = "processing"
+        session["step"] = "correction"
+        t0 = time.time()
+        corrected_transcript = await llm.correct_transcript(raw_transcript)
+        processing_time["correction"] = round(time.time() - t0, 1)
+        session["steps"]["correction"] = "done"
 
-    # Save result
-    result = {
-        "id": result_id,
-        "timestamp": datetime.now().isoformat(),
-        "filename": filename,
-        "raw_transcript": raw_transcript,
-        "corrected_transcript": corrected_transcript,
-        "summary": summary,
-        "segments": segments,
-        "duration_seconds": duration,
-        "processing_time": processing_time,
-    }
-    save_result(result)
+        # Step 3: Summarization
+        session["steps"]["summarization"] = "processing"
+        session["step"] = "summarization"
+        t0 = time.time()
+        summary = await llm.summarize_transcript(corrected_transcript)
+        processing_time["summarization"] = round(time.time() - t0, 1)
+        session["steps"]["summarization"] = "done"
 
-    session["status"] = "done"
-    session["result_id"] = result_id
+        # Save result
+        result = {
+            "id": result_id,
+            "timestamp": datetime.now().isoformat(),
+            "filename": filename,
+            "raw_transcript": raw_transcript,
+            "corrected_transcript": corrected_transcript,
+            "summary": summary,
+            "segments": segments,
+            "duration_seconds": duration,
+            "processing_time": processing_time,
+        }
+        save_result(result)
+
+        session["status"] = "done"
+        session["result_id"] = result_id
+    except Exception as e:
+        session["status"] = "error"
+        session["error"] = str(e)
+
+    # Schedule session cleanup after 60 seconds
+    async def _cleanup():
+        await asyncio.sleep(60)
+        sessions.pop(session_id, None)
+    asyncio.create_task(_cleanup())
 
 
 @app.post("/api/recording/stop")
@@ -196,6 +209,8 @@ async def recording_status(session_id: str):
         response["step"] = session.get("step", "pending")
     elif session["status"] == "done":
         response["result_id"] = session["result_id"]
+    elif session["status"] == "error":
+        response["error"] = session.get("error", "Unknown error")
 
     return response
 

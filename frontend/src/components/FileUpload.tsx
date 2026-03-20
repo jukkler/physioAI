@@ -12,7 +12,7 @@ export function FileUpload({ onFileSelected, disabled }: FileUploadProps) {
   const [dragOver, setDragOver] = useState(false)
 
   const handleFile = useCallback((file: File) => {
-    if (!ACCEPTED_MIMES.some((t) => file.type.startsWith(t.split('/')[0]))) {
+    if (!ACCEPTED_MIMES.includes(file.type)) {
       return
     }
     onFileSelected(file)

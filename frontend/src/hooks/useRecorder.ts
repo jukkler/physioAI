@@ -28,6 +28,7 @@ export function useRecorder(): UseRecorderReturn {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const sessionIdRef = useRef<string | null>(null)
   const resolveStopRef = useRef<((value: ProcessingStartResponse) => void) | null>(null)
+  const rejectStopRef = useRef<((reason: Error) => void) | null>(null)
 
   const start = useCallback(async () => {
     try {
@@ -88,6 +89,7 @@ export function useRecorder(): UseRecorderReturn {
         } catch (err) {
           setState('idle')
           setError(err instanceof Error ? err.message : 'Stop failed')
+          rejectStopRef.current?.(err instanceof Error ? err : new Error('Stop failed'))
         }
       }
 
@@ -104,8 +106,9 @@ export function useRecorder(): UseRecorderReturn {
   }, [])
 
   const stop = useCallback((): Promise<ProcessingStartResponse> => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       resolveStopRef.current = resolve
+      rejectStopRef.current = reject
       setState('stopping')
       recorderRef.current?.stop()
     })
