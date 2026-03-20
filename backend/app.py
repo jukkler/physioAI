@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import secrets
 import time
@@ -8,10 +9,11 @@ logger = logging.getLogger(__name__)
 
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from config import USE_MOCKS
-from services.factory import get_whisper_service, get_llm_service
+from services.factory import get_whisper_service, get_llm_service, get_chat_service
 from services.storage import save_result, get_result, save_upload, update_result, list_results, delete_result, search_results
 
 app = FastAPI(title="PhysioDoc API")
@@ -261,3 +263,22 @@ async def delete_result_endpoint(result_id: str):
     if not deleted:
         raise HTTPException(status_code=404, detail="Result not found")
     return {"deleted": True, "id": result_id}
+
+
+class ChatRequest(BaseModel):
+    message: str
+    history: list[dict] = []
+
+@app.post("/api/chat")
+async def chat_endpoint(request: ChatRequest):
+    chat = get_chat_service()
+    messages = request.history + [{"role": "user", "content": request.message}]
+
+    async def event_stream():
+        full_response = ""
+        async for token in chat.stream_chat(messages):
+            full_response += token
+            yield f"data: {json.dumps({'token': token})}\n\n"
+        yield f"data: {json.dumps({'done': True, 'full_response': full_response})}\n\n"
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
