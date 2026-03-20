@@ -2,15 +2,19 @@ import { useState, useCallback, useEffect } from 'react'
 import { RecordingView } from './components/RecordingView'
 import { ProcessingStatus } from './components/ProcessingStatus'
 import { ResultView } from './components/ResultView'
+import { TabNav } from './components/TabNav'
+import { ArchiveView } from './components/ArchiveView'
 import { getResult, getStatus } from './services/api'
 import type { Result } from './types'
+import type { Tab } from './components/TabNav'
 
-type AppState = 'idle' | 'processing' | 'result' | 'error'
+type RecordingState = 'idle' | 'processing' | 'result' | 'error'
 
 const SESSION_KEY = 'physiodoc_session_id'
 
 function App() {
-  const [appState, setAppState] = useState<AppState>('idle')
+  const [activeTab, setActiveTab] = useState<Tab>('recording')
+  const [recordingState, setRecordingState] = useState<RecordingState>('idle')
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -24,17 +28,17 @@ function App() {
       .then((status) => {
         if (status.status === 'processing') {
           setSessionId(savedSessionId)
-          setAppState('processing')
+          setRecordingState('processing')
         } else if (status.status === 'done' && status.result_id) {
           localStorage.removeItem(SESSION_KEY)
           return getResult(status.result_id).then((r) => {
             setResult(r)
-            setAppState('result')
+            setRecordingState('result')
           })
         } else if (status.status === 'error') {
           localStorage.removeItem(SESSION_KEY)
           setError(status.error ?? 'Verarbeitung fehlgeschlagen')
-          setAppState('error')
+          setRecordingState('error')
         }
       })
       .catch(() => {
@@ -46,7 +50,7 @@ function App() {
   const handleProcessingStarted = useCallback((sid: string) => {
     localStorage.setItem(SESSION_KEY, sid)
     setSessionId(sid)
-    setAppState('processing')
+    setRecordingState('processing')
     setError(null)
   }, [])
 
@@ -55,22 +59,22 @@ function App() {
     try {
       const r = await getResult(resultId)
       setResult(r)
-      setAppState('result')
+      setRecordingState('result')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load result')
-      setAppState('error')
+      setRecordingState('error')
     }
   }, [])
 
   const handleError = useCallback((msg: string) => {
     localStorage.removeItem(SESSION_KEY)
     setError(msg)
-    setAppState('error')
+    setRecordingState('error')
   }, [])
 
   const handleNewRecording = useCallback(() => {
     localStorage.removeItem(SESSION_KEY)
-    setAppState('idle')
+    setRecordingState('idle')
     setSessionId(null)
     setResult(null)
     setError(null)
@@ -88,37 +92,49 @@ function App() {
         </div>
       </header>
 
+      <TabNav activeTab={activeTab} onTabChange={setActiveTab} />
+
       <main className="max-w-4xl mx-auto px-4 py-8">
-        {appState === 'idle' && (
-          <RecordingView
-            onProcessingStarted={handleProcessingStarted}
-            onError={handleError}
-          />
+        {activeTab === 'recording' && (
+          <>
+            {recordingState === 'idle' && (
+              <RecordingView
+                onProcessingStarted={handleProcessingStarted}
+                onError={handleError}
+              />
+            )}
+
+            {recordingState === 'processing' && sessionId && (
+              <ProcessingStatus
+                sessionId={sessionId}
+                onDone={handleDone}
+                onError={handleError}
+              />
+            )}
+
+            {recordingState === 'result' && result && (
+              <ResultView result={result} onNewRecording={handleNewRecording} />
+            )}
+
+            {recordingState === 'error' && (
+              <div className="text-center space-y-4">
+                <div className="bg-red-50 text-red-700 rounded-lg p-4">{error || 'Ein unbekannter Fehler ist aufgetreten.'}</div>
+                <button
+                  onClick={handleNewRecording}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
+                >
+                  Erneut versuchen
+                </button>
+              </div>
+            )}
+          </>
         )}
 
-        {appState === 'processing' && sessionId && (
-          <ProcessingStatus
-            sessionId={sessionId}
-            onDone={handleDone}
-            onError={handleError}
-          />
+        {activeTab === 'chat' && (
+          <div className="text-center text-gray-500 py-12">Chat wird implementiert...</div>
         )}
 
-        {appState === 'result' && result && (
-          <ResultView result={result} onNewRecording={handleNewRecording} />
-        )}
-
-        {appState === 'error' && (
-          <div className="text-center space-y-4">
-            <div className="bg-red-50 text-red-700 rounded-lg p-4">{error || 'Ein unbekannter Fehler ist aufgetreten.'}</div>
-            <button
-              onClick={handleNewRecording}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
-            >
-              Erneut versuchen
-            </button>
-          </div>
-        )}
+        {activeTab === 'archive' && <ArchiveView />}
       </main>
     </div>
   )
