@@ -1,11 +1,13 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { RecordingView } from './components/RecordingView'
 import { ProcessingStatus } from './components/ProcessingStatus'
 import { ResultView } from './components/ResultView'
-import { getResult } from './services/api'
+import { getResult, getStatus } from './services/api'
 import type { Result } from './types'
 
 type AppState = 'idle' | 'processing' | 'result' | 'error'
+
+const SESSION_KEY = 'physiodoc_session_id'
 
 function App() {
   const [appState, setAppState] = useState<AppState>('idle')
@@ -13,13 +15,43 @@ function App() {
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // On mount: check if there's an active session from before refresh
+  useEffect(() => {
+    const savedSessionId = localStorage.getItem(SESSION_KEY)
+    if (!savedSessionId) return
+
+    getStatus(savedSessionId)
+      .then((status) => {
+        if (status.status === 'processing') {
+          setSessionId(savedSessionId)
+          setAppState('processing')
+        } else if (status.status === 'done' && status.result_id) {
+          localStorage.removeItem(SESSION_KEY)
+          return getResult(status.result_id).then((r) => {
+            setResult(r)
+            setAppState('result')
+          })
+        } else if (status.status === 'error') {
+          localStorage.removeItem(SESSION_KEY)
+          setError(status.error ?? 'Verarbeitung fehlgeschlagen')
+          setAppState('error')
+        }
+      })
+      .catch(() => {
+        // Session no longer exists on server
+        localStorage.removeItem(SESSION_KEY)
+      })
+  }, [])
+
   const handleProcessingStarted = useCallback((sid: string) => {
+    localStorage.setItem(SESSION_KEY, sid)
     setSessionId(sid)
     setAppState('processing')
     setError(null)
   }, [])
 
   const handleDone = useCallback(async (resultId: string) => {
+    localStorage.removeItem(SESSION_KEY)
     try {
       const r = await getResult(resultId)
       setResult(r)
@@ -31,11 +63,13 @@ function App() {
   }, [])
 
   const handleError = useCallback((msg: string) => {
+    localStorage.removeItem(SESSION_KEY)
     setError(msg)
     setAppState('error')
   }, [])
 
   const handleNewRecording = useCallback(() => {
+    localStorage.removeItem(SESSION_KEY)
     setAppState('idle')
     setSessionId(null)
     setResult(null)
