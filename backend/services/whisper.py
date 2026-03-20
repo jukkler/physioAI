@@ -3,7 +3,7 @@ import os
 import httpx
 from config import WHISPER_API_URL
 
-TIMEOUT = 600.0
+TIMEOUT = 1800.0  # 30 min — large-v3 on CPU needs time for long audio
 
 
 async def transcribe_chunk(audio_bytes: bytes) -> str:
