@@ -158,6 +158,14 @@ export function ResultView({ result, onNewRecording }: ResultViewProps) {
           </>
         )}
 
+        <a
+          href={`/api/results/${result.id}/pdf`}
+          download
+          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"
+        >
+          PDF exportieren
+        </a>
+
         <button
           onClick={onNewRecording}
           className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 ml-auto"
