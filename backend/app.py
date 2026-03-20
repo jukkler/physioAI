@@ -10,12 +10,13 @@ logger = logging.getLogger(__name__)
 
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 
 from config import USE_MOCKS
 from services.factory import get_whisper_service, get_llm_service, get_chat_service
 from services.storage import save_result, get_result, save_upload, update_result, list_results, delete_result, search_results
+from services.pdf import generate_pdf
 
 app = FastAPI(title="PhysioDoc API")
 
@@ -232,6 +233,20 @@ async def search_results_endpoint(q: str = ""):
     if not q:
         return []
     return search_results(q)
+
+
+@app.get("/api/results/{result_id}/pdf")
+async def get_result_pdf(result_id: str):
+    result = get_result(result_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Result not found")
+    pdf_bytes = generate_pdf(result)
+    filename = f"PhysioDoc_{result_id}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @app.get("/api/results/{result_id}")
