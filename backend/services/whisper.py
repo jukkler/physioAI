@@ -3,7 +3,7 @@ import os
 import httpx
 from config import WHISPER_API_URL
 
-TIMEOUT = 1800.0  # 30 min — large-v3 on CPU needs time for long audio
+TIMEOUT = 1800.0  # 30 min safety margin
 
 
 async def transcribe_chunk(audio_bytes: bytes) -> str:
@@ -12,7 +12,6 @@ async def transcribe_chunk(audio_bytes: bytes) -> str:
             f"{WHISPER_API_URL}/v1/audio/transcriptions",
             files={"file": ("chunk.webm", audio_bytes, "audio/webm")},
             data={
-                "language": "de",
                 "response_format": "json",
             },
         )
@@ -27,9 +26,7 @@ async def transcribe_full(audio_path: str) -> dict:
                 f"{WHISPER_API_URL}/v1/audio/transcriptions",
                 files={"file": (os.path.basename(audio_path), f, "audio/webm")},
                 data={
-                    "language": "de",
                     "response_format": "verbose_json",
-                    "timestamp_granularities[]": "segment",
                 },
             )
         response.raise_for_status()
