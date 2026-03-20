@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { updateResult } from '../services/api'
 import type { Result } from '../types'
 
@@ -16,6 +16,11 @@ export function ResultView({ result, onNewRecording }: ResultViewProps) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    setEditedSummary(result.summary)
+    setIsEditing(false)
+  }, [result.id])
 
   const handleCopy = async (text: string) => {
     await navigator.clipboard.writeText(text)
