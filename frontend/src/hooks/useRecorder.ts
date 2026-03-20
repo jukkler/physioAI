@@ -29,6 +29,7 @@ export function useRecorder(): UseRecorderReturn {
   const sessionIdRef = useRef<string | null>(null)
   const resolveStopRef = useRef<((value: ProcessingStartResponse) => void) | null>(null)
   const rejectStopRef = useRef<((reason: Error) => void) | null>(null)
+  const lastChunkResolveRef = useRef<(() => void) | null>(null)
 
   const start = useCallback(async () => {
     try {
@@ -61,6 +62,8 @@ export function useRecorder(): UseRecorderReturn {
       recorder.ondataavailable = async (event) => {
         if (event.data.size > 0) {
           chunksRef.current.push(event.data)
+          // Send chunk for live preview (skip if already stopping — chunk is still
+          // captured above and will be included in the final audio blob)
           if (recorder.state === 'recording' && sessionIdRef.current) {
             try {
               const result = await sendChunk(sessionIdRef.current, event.data)
@@ -70,9 +73,17 @@ export function useRecorder(): UseRecorderReturn {
             }
           }
         }
+        // Signal that the last chunk has been captured
+        lastChunkResolveRef.current?.()
+        lastChunkResolveRef.current = null
       }
 
       recorder.onstop = async () => {
+        // Wait for the final ondataavailable event to fire and capture the last chunk
+        await new Promise<void>((resolve) => {
+          lastChunkResolveRef.current = resolve
+        })
+
         const completeAudio = new Blob(chunksRef.current, { type: 'audio/webm' })
         mediaStream.getTracks().forEach((t) => t.stop())
         setStream(null)
