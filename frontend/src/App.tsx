@@ -73,7 +73,7 @@ function App() {
 
         {appState === 'error' && (
           <div className="text-center space-y-4">
-            <div className="bg-red-50 text-red-700 rounded-lg p-4">{error}</div>
+            <div className="bg-red-50 text-red-700 rounded-lg p-4">{error || 'Ein unbekannter Fehler ist aufgetreten.'}</div>
             <button
               onClick={handleNewRecording}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200"

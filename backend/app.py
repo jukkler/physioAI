@@ -1,7 +1,10 @@
 import asyncio
+import logging
 import secrets
 import time
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -137,6 +140,7 @@ async def _run_pipeline(session_id: str, audio_bytes: bytes, filename: str):
         session["status"] = "done"
         session["result_id"] = result_id
     except Exception as e:
+        logger.exception("Pipeline failed for session %s", session_id)
         session["status"] = "error"
         session["error"] = str(e)
 

@@ -23,7 +23,7 @@ export function ProcessingStatus({ sessionId, onDone, onError }: ProcessingStatu
     summarization: 'pending',
   })
 
-  const MAX_POLLS = 300
+  const MAX_POLLS = 900  // 30 min (large audio on CPU can take a while)
 
   useEffect(() => {
     let active = true
