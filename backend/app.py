@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import os
 import secrets
 import time
 from datetime import datetime
@@ -282,3 +283,16 @@ async def chat_endpoint(request: ChatRequest):
         yield f"data: {json.dumps({'done': True, 'full_response': full_response})}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
+# Serve frontend static files in production (when ./static exists)
+_static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.isdir(_static_dir):
+    from fastapi.responses import FileResponse
+
+    @app.get("/{path:path}")
+    async def serve_spa(path: str):
+        file_path = os.path.join(_static_dir, path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+        return FileResponse(os.path.join(_static_dir, "index.html"))
