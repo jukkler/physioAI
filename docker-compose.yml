@@ -1,0 +1,23 @@
+name: physiodoc
+
+services:
+  app:
+    build: .
+    container_name: physiodoc
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - WHISPER_API_URL=http://192.168.178.73:8100
+      - OLLAMA_API_URL=http://192.168.178.73:11434
+      - LLM_MODEL=qwen3.5:9b
+      - UPLOAD_DIR=/app/uploads
+      - DATA_DIR=/app/data
+      - USE_MOCKS=false
+    volumes:
+      - physiodoc-uploads:/app/uploads
+      - physiodoc-data:/app/data
+
+volumes:
+  physiodoc-uploads:
+  physiodoc-data:
