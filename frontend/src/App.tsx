@@ -4,6 +4,7 @@ import { ProcessingStatus } from './components/ProcessingStatus'
 import { ResultView } from './components/ResultView'
 import { TabNav } from './components/TabNav'
 import { ArchiveView } from './components/ArchiveView'
+import { ChatView } from './components/ChatView'
 import { getResult, getStatus } from './services/api'
 import type { Result } from './types'
 import type { Tab } from './components/TabNav'
@@ -130,9 +131,7 @@ function App() {
           </>
         )}
 
-        {activeTab === 'chat' && (
-          <div className="text-center text-gray-500 py-12">Chat wird implementiert...</div>
-        )}
+        {activeTab === 'chat' && <ChatView />}
 
         {activeTab === 'archive' && <ArchiveView />}
       </main>
