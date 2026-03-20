@@ -41,7 +41,7 @@ def update_result(result_id: str, updates: dict) -> dict | None:
 
 
 def save_upload(audio_bytes: bytes, session_id: str, filename: str) -> str:
-    safe_name = f"{session_id}_{filename}"
+    safe_name = f"{session_id}_{os.path.basename(filename)}"
     filepath = os.path.join(_uploads_dir(), safe_name)
     with open(filepath, "wb") as f:
         f.write(audio_bytes)

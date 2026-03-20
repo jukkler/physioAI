@@ -1,14 +1,13 @@
 import json
 import os
-import tempfile
 import pytest
 from services.storage import save_result, get_result, save_upload, update_result
 
 
 @pytest.fixture
-def data_dir(tmp_path):
-    os.environ["DATA_DIR"] = str(tmp_path / "data")
-    os.environ["UPLOAD_DIR"] = str(tmp_path / "uploads")
+def data_dir(tmp_path, monkeypatch):
+    monkeypatch.setenv("DATA_DIR", str(tmp_path / "data"))
+    monkeypatch.setenv("UPLOAD_DIR", str(tmp_path / "uploads"))
     return tmp_path
 
 
