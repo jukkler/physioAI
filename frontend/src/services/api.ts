@@ -4,6 +4,7 @@ import type {
   ProcessingStartResponse,
   StatusResponse,
   Result,
+  ResultSummary,
 } from '../types'
 
 const BASE = '/api'
@@ -49,10 +50,22 @@ export async function getResult(resultId: string): Promise<Result> {
   return fetchJSON(`/results/${resultId}`)
 }
 
-export async function updateResult(resultId: string, updates: { summary?: string }): Promise<Result> {
+export async function updateResult(resultId: string, updates: { summary?: string; corrected_transcript?: string }): Promise<Result> {
   return fetchJSON(`/results/${resultId}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(updates),
   })
+}
+
+export async function listResults(): Promise<ResultSummary[]> {
+  return fetchJSON('/results')
+}
+
+export async function deleteResult(resultId: string): Promise<{ deleted: boolean }> {
+  return fetchJSON(`/results/${resultId}`, { method: 'DELETE' })
+}
+
+export async function searchResults(query: string): Promise<ResultSummary[]> {
+  return fetchJSON(`/results/search?q=${encodeURIComponent(query)}`)
 }

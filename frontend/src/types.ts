@@ -51,3 +51,16 @@ export interface Result {
     summarization: number
   }
 }
+
+export interface ResultSummary {
+  id: string
+  timestamp: string
+  filename: string
+  summary: string
+  duration_seconds: number
+}
+
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
