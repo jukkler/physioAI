@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 from config import USE_MOCKS
 from services.factory import get_whisper_service, get_llm_service
-from services.storage import save_result, get_result, save_upload, update_result
+from services.storage import save_result, get_result, save_upload, update_result, list_results, delete_result, search_results
 
 app = FastAPI(title="PhysioDoc API")
 
@@ -219,6 +219,18 @@ async def recording_status(session_id: str):
     return response
 
 
+@app.get("/api/results")
+async def list_results_endpoint():
+    return list_results()
+
+
+@app.get("/api/results/search")
+async def search_results_endpoint(q: str = ""):
+    if not q:
+        return []
+    return search_results(q)
+
+
 @app.get("/api/results/{result_id}")
 async def get_result_endpoint(result_id: str):
     result = get_result(result_id)
@@ -241,3 +253,11 @@ async def update_result_endpoint(result_id: str, updates: ResultUpdate):
     if result is None:
         raise HTTPException(status_code=404, detail="Result not found")
     return result
+
+
+@app.delete("/api/results/{result_id}")
+async def delete_result_endpoint(result_id: str):
+    deleted = delete_result(result_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Result not found")
+    return {"deleted": True, "id": result_id}

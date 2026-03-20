@@ -79,8 +79,8 @@ from app import app
 
 @pytest.mark.asyncio
 async def test_api_list_results():
-    _save_sample("20260320_100000_aaa")
-    _save_sample("20260320_110000_bbb")
+    _save_sample("20260320_100000_aaa", timestamp="2026-03-20T10:00:00")
+    _save_sample("20260320_110000_bbb", timestamp="2026-03-20T11:00:00")
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/api/results")
     assert response.status_code == 200
