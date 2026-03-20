@@ -3,9 +3,9 @@ import type { ChatMessage } from '../types'
 import { sendChatMessage } from '../services/api'
 
 const SUGGESTED_PROMPTS = [
-  'Uebungsanleitung fuer Patienten erstellen',
+  'Übungsanleitung für Patienten erstellen',
   'Differentialdiagnosen zu...',
-  'E-Mail an Ueberweiser formulieren',
+  'E-Mail an Überweiser formulieren',
   'Behandlungsbericht erstellen',
 ]
 
