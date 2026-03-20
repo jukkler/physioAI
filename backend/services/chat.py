@@ -1,4 +1,5 @@
 import json
+import urllib.request
 from typing import AsyncGenerator
 
 import httpx
@@ -7,7 +8,17 @@ from prompts import CHAT_SYSTEM_PROMPT
 
 TIMEOUT = 300.0
 
+
+def _claim_gpu():
+    try:
+        req = urllib.request.Request("http://gpu-manager:8090/gpu/claim/ollama", method="POST")
+        urllib.request.urlopen(req, timeout=60)
+    except Exception:
+        pass
+
+
 async def stream_chat(messages: list[dict]) -> AsyncGenerator[str, None]:
+    _claim_gpu()
     full_messages = [{"role": "system", "content": CHAT_SYSTEM_PROMPT}] + messages
     async with httpx.AsyncClient(timeout=TIMEOUT) as client:
         async with client.stream(

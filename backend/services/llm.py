@@ -1,3 +1,5 @@
+import urllib.request
+
 import httpx
 from config import OLLAMA_API_URL, LLM_MODEL
 from prompts import CORRECTION_PROMPT, SUMMARIZATION_PROMPT
@@ -5,7 +7,16 @@ from prompts import CORRECTION_PROMPT, SUMMARIZATION_PROMPT
 TIMEOUT = 300.0
 
 
+def _claim_gpu():
+    try:
+        req = urllib.request.Request("http://gpu-manager:8090/gpu/claim/ollama", method="POST")
+        urllib.request.urlopen(req, timeout=60)
+    except Exception:
+        pass
+
+
 async def _generate(prompt: str, temperature: float, num_predict: int) -> str:
+    _claim_gpu()
     async with httpx.AsyncClient(timeout=TIMEOUT) as client:
         response = await client.post(
             f"{OLLAMA_API_URL}/api/generate",
