@@ -1,5 +1,6 @@
 import { useRecorder } from '../hooks/useRecorder'
 import { useAudioMeter } from '../hooks/useAudioMeter'
+import { uploadAudio } from '../services/api'
 import { AudioMeter } from './AudioMeter'
 import { FileUpload } from './FileUpload'
 
@@ -29,7 +30,6 @@ export function RecordingView({ onProcessingStarted, onError }: RecordingViewPro
 
   const handleFileSelected = async (file: File) => {
     try {
-      const { uploadAudio } = await import('../services/api')
       const response = await uploadAudio(file)
       onProcessingStarted(response.session_id)
     } catch (err) {
