@@ -46,3 +46,41 @@ def save_upload(audio_bytes: bytes, session_id: str, filename: str) -> str:
     with open(filepath, "wb") as f:
         f.write(audio_bytes)
     return filepath
+
+
+def list_results() -> list[dict]:
+    results_dir = _results_dir()
+    results = []
+    for filename in os.listdir(results_dir):
+        if filename.endswith("_result.json"):
+            filepath = os.path.join(results_dir, filename)
+            with open(filepath, "r", encoding="utf-8") as f:
+                results.append(json.load(f))
+    results.sort(key=lambda r: r.get("timestamp", ""), reverse=True)
+    return results
+
+
+def delete_result(result_id: str) -> bool:
+    filepath = os.path.join(_results_dir(), f"{result_id}_result.json")
+    if not os.path.exists(filepath):
+        return False
+    os.remove(filepath)
+    uploads_dir = _uploads_dir()
+    for f in os.listdir(uploads_dir):
+        if f.startswith(result_id):
+            os.remove(os.path.join(uploads_dir, f))
+    return True
+
+
+def search_results(query: str) -> list[dict]:
+    query_lower = query.lower()
+    matches = []
+    for result in list_results():
+        searchable = " ".join([
+            result.get("summary", ""),
+            result.get("corrected_transcript", ""),
+            result.get("raw_transcript", ""),
+        ]).lower()
+        if query_lower in searchable:
+            matches.append(result)
+    return matches
