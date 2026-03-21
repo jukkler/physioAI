@@ -29,7 +29,7 @@ export function useRecorder(): UseRecorderReturn {
   const sessionIdRef = useRef<string | null>(null)
   const resolveStopRef = useRef<((value: ProcessingStartResponse) => void) | null>(null)
   const rejectStopRef = useRef<((reason: Error) => void) | null>(null)
-  const lastChunkResolveRef = useRef<(() => void) | null>(null)
+
 
   const start = useCallback(async () => {
     try {
@@ -65,7 +65,7 @@ export function useRecorder(): UseRecorderReturn {
           // Send accumulated blob for live preview (not just the new chunk, because
           // only the first chunk contains the WebM/EBML header — subsequent chunks
           // are raw data that FFmpeg cannot parse on their own)
-          if (recorder.state === 'recording' && sessionIdRef.current) {
+          if (sessionIdRef.current) {
             try {
               const accumulated = new Blob(chunksRef.current, { type: 'audio/webm' })
               const result = await sendChunk(sessionIdRef.current, accumulated)
@@ -75,17 +75,11 @@ export function useRecorder(): UseRecorderReturn {
             }
           }
         }
-        // Signal that the last chunk has been captured
-        lastChunkResolveRef.current?.()
-        lastChunkResolveRef.current = null
       }
 
       recorder.onstop = async () => {
-        // Wait for the final ondataavailable event to fire and capture the last chunk
-        await new Promise<void>((resolve) => {
-          lastChunkResolveRef.current = resolve
-        })
-
+        // dataavailable fires synchronously before stop (per spec),
+        // so all chunks are already in chunksRef at this point
         const completeAudio = new Blob(chunksRef.current, { type: 'audio/webm' })
         mediaStream.getTracks().forEach((t) => t.stop())
         setStream(null)
