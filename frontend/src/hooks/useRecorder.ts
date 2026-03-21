@@ -62,11 +62,13 @@ export function useRecorder(): UseRecorderReturn {
       recorder.ondataavailable = async (event) => {
         if (event.data.size > 0) {
           chunksRef.current.push(event.data)
-          // Send chunk for live preview (skip if already stopping — chunk is still
-          // captured above and will be included in the final audio blob)
+          // Send accumulated blob for live preview (not just the new chunk, because
+          // only the first chunk contains the WebM/EBML header — subsequent chunks
+          // are raw data that FFmpeg cannot parse on their own)
           if (recorder.state === 'recording' && sessionIdRef.current) {
             try {
-              const result = await sendChunk(sessionIdRef.current, event.data)
+              const accumulated = new Blob(chunksRef.current, { type: 'audio/webm' })
+              const result = await sendChunk(sessionIdRef.current, accumulated)
               setCumulativeText(result.cumulative_text)
             } catch {
               // Chunk preview failed — non-critical, continue recording
