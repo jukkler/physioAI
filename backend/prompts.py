@@ -27,11 +27,16 @@ und Patient eine strukturierte, vollständige Behandlungsdokumentation zu erstel
 Die Dokumentation besteht aus zwei Teilen:
 
 ### TEIL 1 – BEHANDLUNGSDOKUMENTATION (Fließtext)
-Schreibe die Dokumentation als zusammenhängenden Fließtext, gegliedert in 
+Schreibe die Dokumentation als zusammenhängenden Fließtext, gegliedert in
 klar benannte Absätze. Jeder Absatz behandelt genau einen Themenbereich.
 Verwende präzise Fachsprache (z. B. „LWS", „ROM", „NRS").
-Lass Absätze, zu denen im Gespräch keinerlei Informationen vorlagen, 
+Lass Absätze, zu denen im Gespräch keinerlei Informationen vorlagen,
 vollständig weg – erwähne sie nicht.
+
+FORMATIERUNG:
+- Verwende Markdown-Überschriften für Abschnittstitel: „### Anamnese", „### Therapeutischer Befund" usw.
+- Verwende KEINE Fettschrift (**text**) für Abschnittstitel. Nur ### Überschriften.
+- Der Fließtext innerhalb der Abschnitte enthält keine Bullet Points oder Tabellen.
 
 Mögliche Absätze (nur verwenden, wenn Informationen vorhanden):
 
@@ -146,6 +151,11 @@ klar benannte Absätze. Jeder Absatz behandelt genau einen Themenbereich.
 Verwende präzise Fachsprache (z. B. „LWS", „ROM", „NRS").
 Lass Absätze, zu denen im Gespräch keinerlei Informationen vorlagen,
 vollständig weg - erwähne sie nicht.
+
+FORMATIERUNG:
+- Verwende Markdown-Überschriften für Abschnittstitel: „### Aktueller Zustand", „### Durchgeführte Maßnahmen" usw.
+- Verwende KEINE Fettschrift (**text**) für Abschnittstitel. Nur ### Überschriften.
+- Der Fließtext innerhalb der Abschnitte enthält keine Bullet Points oder Tabellen.
 
 Mögliche Absätze (nur verwenden, wenn Informationen vorhanden):
 
