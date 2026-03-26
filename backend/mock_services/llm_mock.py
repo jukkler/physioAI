@@ -45,6 +45,6 @@ async def correct_transcript(raw_text: str) -> str:
     return MOCK_CORRECTED
 
 
-async def summarize_transcript(corrected_text: str) -> str:
+async def summarize_transcript(corrected_text: str, doc_type: str = "befund") -> str:
     await asyncio.sleep(0.5)
     return MOCK_SUMMARY

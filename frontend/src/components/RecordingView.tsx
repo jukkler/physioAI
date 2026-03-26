@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { useRecorder } from '../hooks/useRecorder'
 import { useAudioMeter } from '../hooks/useAudioMeter'
 import { uploadAudio } from '../services/api'
 import { AudioMeter } from './AudioMeter'
 import { FileUpload } from './FileUpload'
+
+type DocType = 'befund' | 'verlauf'
 
 interface RecordingViewProps {
   onProcessingStarted: (sessionId: string) => void
@@ -16,12 +19,13 @@ function formatTime(seconds: number): string {
 }
 
 export function RecordingView({ onProcessingStarted, onError }: RecordingViewProps) {
+  const [docType, setDocType] = useState<DocType>('befund')
   const { state, cumulativeText, elapsedSeconds, stream, start, stop, error } = useRecorder()
   const level = useAudioMeter(stream)
 
   const handleStop = async () => {
     try {
-      const response = await stop()
+      const response = await stop(docType)
       onProcessingStarted(response.session_id)
     } catch (err) {
       onError(err instanceof Error ? err.message : 'Stop failed')
@@ -30,7 +34,7 @@ export function RecordingView({ onProcessingStarted, onError }: RecordingViewPro
 
   const handleFileSelected = async (file: File) => {
     try {
-      const response = await uploadAudio(file)
+      const response = await uploadAudio(file, docType)
       onProcessingStarted(response.session_id)
     } catch (err) {
       onError(err instanceof Error ? err.message : 'Upload failed')
@@ -39,6 +43,30 @@ export function RecordingView({ onProcessingStarted, onError }: RecordingViewPro
 
   return (
     <div className="space-y-6">
+      {/* Doc Type Toggle */}
+      {state === 'idle' && (
+        <div className="flex items-center justify-center gap-3">
+          <span className={`text-sm font-medium ${docType === 'befund' ? 'text-blue-600' : 'text-gray-400'}`}>
+            Befundung
+          </span>
+          <button
+            onClick={() => setDocType(docType === 'befund' ? 'verlauf' : 'befund')}
+            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+              docType === 'verlauf' ? 'bg-blue-600' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                docType === 'verlauf' ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+          <span className={`text-sm font-medium ${docType === 'verlauf' ? 'text-blue-600' : 'text-gray-400'}`}>
+            Verlaufsdoku
+          </span>
+        </div>
+      )}
+
       {/* Record Button */}
       <div className="flex flex-col items-center gap-4">
         {state === 'idle' && (

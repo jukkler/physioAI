@@ -29,16 +29,18 @@ export async function sendChunk(sessionId: string, audioBlob: Blob): Promise<Chu
   return fetchJSON('/transcribe/chunk', { method: 'POST', body: formData })
 }
 
-export async function stopRecording(sessionId: string, audioBlob: Blob): Promise<ProcessingStartResponse> {
+export async function stopRecording(sessionId: string, audioBlob: Blob, docType: string = 'befund'): Promise<ProcessingStartResponse> {
   const formData = new FormData()
   formData.append('file', audioBlob, `aufnahme_${sessionId}.webm`)
   formData.append('session_id', sessionId)
+  formData.append('doc_type', docType)
   return fetchJSON('/recording/stop', { method: 'POST', body: formData })
 }
 
-export async function uploadAudio(file: File): Promise<ProcessingStartResponse> {
+export async function uploadAudio(file: File, docType: string = 'befund'): Promise<ProcessingStartResponse> {
   const formData = new FormData()
   formData.append('file', file)
+  formData.append('doc_type', docType)
   return fetchJSON('/process', { method: 'POST', body: formData })
 }
 

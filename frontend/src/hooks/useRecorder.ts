@@ -11,7 +11,7 @@ interface UseRecorderReturn {
   elapsedSeconds: number
   stream: MediaStream | null
   start: () => Promise<void>
-  stop: () => Promise<ProcessingStartResponse>
+  stop: (docType?: string) => Promise<ProcessingStartResponse>
   error: string | null
 }
 
@@ -27,6 +27,7 @@ export function useRecorder(): UseRecorderReturn {
   const chunksRef = useRef<Blob[]>([])
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const sessionIdRef = useRef<string | null>(null)
+  const docTypeRef = useRef<string>('befund')
   const resolveStopRef = useRef<((value: ProcessingStartResponse) => void) | null>(null)
   const rejectStopRef = useRef<((reason: Error) => void) | null>(null)
 
@@ -90,7 +91,7 @@ export function useRecorder(): UseRecorderReturn {
         }
 
         try {
-          const response = await apiStopRecording(sessionIdRef.current!, completeAudio)
+          const response = await apiStopRecording(sessionIdRef.current!, completeAudio, docTypeRef.current)
           setState('idle')
           resolveStopRef.current?.(response)
         } catch (err) {
@@ -112,8 +113,9 @@ export function useRecorder(): UseRecorderReturn {
     }
   }, [])
 
-  const stop = useCallback((): Promise<ProcessingStartResponse> => {
+  const stop = useCallback((docType: string = 'befund'): Promise<ProcessingStartResponse> => {
     return new Promise((resolve, reject) => {
+      docTypeRef.current = docType
       resolveStopRef.current = resolve
       rejectStopRef.current = reject
       setState('stopping')

@@ -14,8 +14,8 @@ Gib NUR das korrigierte Transkript zurück.
 TRANSKRIPT:
 {transcript}"""
 
-SUMMARIZATION_PROMPT = """Du bist ein Dokumentationsassistent für Physiotherapie.
-Fasse das folgende Gespräch zwischen Therapeut und Patient zusammen.
+BEFUND_SUMMARIZATION_PROMPT = """Du bist ein Dokumentationsassistent für Physiotherapie.
+Fasse das folgende Gespräch als ERSTBEFUND / BEFUNDUNG zusammen.
 
 ## Patienteninformation
 - Name, Alter, Geschlecht (wenn erwähnt)
@@ -23,40 +23,33 @@ Fasse das folgende Gespräch zwischen Therapeut und Patient zusammen.
 - Verordnende Diagnose / ICD-10 (wenn erwähnt)
 
 ## Anamnese
-- Hauptbeschwerde und Schmerzlokalisation
-- Schmerzbeginn und -verlauf (akut/chronisch, Unfallhergang)
-- Schmerzcharakter und -intensität (VAS/NRS)
-- Verstärkende Faktoren (Belastung, Haltung, Bewegung)
-- Lindernde Faktoren (Ruhe, Wärme, Lagerung)
-- Vorbehandlungen (frühere Physio, OPs, Spritzen)
-- Berufliche Belastung und Alltagsaktivitäten
-- Patientenziel / Erwartung an die Therapie
+- Aktuelle Beschwerden, Schmerzlokalisation, -intensität, -charakter
+- Vorerkrankungen, Operationen, Medikamente
+- Beruf, Sport, Alltagsbelastungen
+- Bisherige Therapien und deren Wirkung
 
-## Befund / Untersuchung
-- Inspektion (Haltung, Gangbild, Schwellung, Rötung)
-- Palpation (Muskelverspannungen, Triggerpunkte, Druckschmerz)
-- Aktive und passive Beweglichkeit (ROM, Endgefühl)
-- Krafttests (Gradeinteilung nach Janda)
-- Spezifische Tests (z.B. Lasègue, Hawkins, Apprehension)
-- Neurologische Auffälligkeiten (Sensibilität, Reflexe)
+## Therapeutischer Befund
+- Inspektion (Haltung, Schwellungen, Narben, Atrophien)
+- Palpation (Muskeltonus, Druckschmerz, Gewebezustand)
+- Bewegungsausmaße (ROM — aktiv/passiv)
+- Muskelkraft- und Funktionstests (Gradeinteilung nach Janda)
+- Spezifische Sondertests (z.B. Lasègue, Lachman, Hawkins, Apprehension)
+- Ganganalyse, Koordination, Gleichgewicht
+- Neurodynamische Tests (wenn indiziert)
 
-## Behandlung (durchgeführt)
-- Angewandte Techniken (MT, Weichteiltechniken, PNF, Tape etc.)
-- Behandelte Strukturen/Regionen
-- Reaktion des Patienten auf die Behandlung
-- Schmerzentwicklung während der Sitzung
+## Ärztliche Verordnung
+- Diagnose des Arztes
+- Verordnete Heilmittel und Anzahl der Einheiten
 
-## Eigenübungsprogramm
-- Verordnete Übungen mit Beschreibung
-- Häufigkeit und Intensität
-- Haltungsberatung / Ergonomie-Tipps
+## Therapieziele
+- Kurzfristige Ziele
+- Langfristige Ziele
+- Patientenwunsch und Alltagsrelevanz
 
-## Therapieplanung
-- Behandlungsziel (kurz- und langfristig)
-- Geplante Techniken für Folgebehandlungen
+## Therapieplan
+- Geplante Maßnahmen und Vorgehensweise
 - Empfohlene Behandlungsfrequenz
 - Rücksprache mit Arzt nötig?
-- Nächster Termin
 
 ## Offene Punkte / Besonderheiten
 - Red Flags oder Kontraindikationen
@@ -73,6 +66,53 @@ REGELN:
 
 TRANSKRIPT:
 {transcript}"""
+
+
+VERLAUF_SUMMARIZATION_PROMPT = """Du bist ein Dokumentationsassistent für Physiotherapie.
+Fasse das folgende Gespräch als VERLAUFSDOKUMENTATION einer Behandlungseinheit zusammen.
+
+## Behandlungsdaten
+- Datum und Uhrzeit (wenn erwähnt)
+- Behandlungsdauer
+
+## Durchgeführte Maßnahmen
+- Angewandte Techniken (z.B. Manuelle Therapie, KG, Elektrotherapie, PNF, Tape)
+- Behandelte Strukturen/Regionen
+
+## Verlauf und Reaktionen
+- Verbesserung, Verschlechterung, Schmerzen
+- Schmerzentwicklung während der Sitzung (VAS/NRS wenn erwähnt)
+- Beweglichkeitsveränderungen
+
+## Besonderheiten
+- Neue Symptome, Sturz, Unverträglichkeit
+- Red Flags oder Auffälligkeiten
+- Compliance / Motivation des Patienten
+
+## Eigenübungsprogramm / Hausaufgaben
+- Instruierte Übungen mit Beschreibung
+- Häufigkeit und Intensität
+- Haltungsberatung / Ergonomie-Tipps
+
+## Weiteres Vorgehen
+- Geplante Maßnahmen für nächste Einheit
+- Rücksprache mit Arzt nötig?
+- Nächster Termin
+
+REGELN:
+- Verwende AUSSCHLIESSLICH Informationen aus dem Gespräch
+- Markiere Vermutungen mit [Vermutung]
+- Markiere Unklares mit [unklar]
+- Ergänze Fachbegriffe in Klammern hinter Laienausdrücken
+- Bewegungsausmaß wenn möglich in Grad angeben
+- Leere Abschnitte: "Nicht besprochen / nicht untersucht"
+
+TRANSKRIPT:
+{transcript}"""
+
+
+# Keep backward-compatible alias
+SUMMARIZATION_PROMPT = BEFUND_SUMMARIZATION_PROMPT
 
 CHAT_SYSTEM_PROMPT = """Du bist ein KI-Assistent für eine Physiotherapie-Praxis.
 Du hilfst bei:

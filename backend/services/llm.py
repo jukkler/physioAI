@@ -2,7 +2,7 @@ import urllib.request
 
 import httpx
 from config import OLLAMA_API_URL, LLM_MODEL
-from prompts import CORRECTION_PROMPT, SUMMARIZATION_PROMPT
+from prompts import CORRECTION_PROMPT, BEFUND_SUMMARIZATION_PROMPT, VERLAUF_SUMMARIZATION_PROMPT
 
 TIMEOUT = 300.0
 
@@ -41,6 +41,7 @@ async def correct_transcript(raw_text: str) -> str:
     return await _generate(prompt, temperature=0.1, num_predict=4096)
 
 
-async def summarize_transcript(corrected_text: str) -> str:
-    prompt = SUMMARIZATION_PROMPT.format(transcript=corrected_text)
+async def summarize_transcript(corrected_text: str, doc_type: str = "befund") -> str:
+    template = VERLAUF_SUMMARIZATION_PROMPT if doc_type == "verlauf" else BEFUND_SUMMARIZATION_PROMPT
+    prompt = template.format(transcript=corrected_text)
     return await _generate(prompt, temperature=0.3, num_predict=2048)

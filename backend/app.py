@@ -86,7 +86,7 @@ async def transcribe_chunk(
     }
 
 
-async def _run_pipeline(session_id: str, audio_bytes: bytes, filename: str):
+async def _run_pipeline(session_id: str, audio_bytes: bytes, filename: str, doc_type: str = "befund"):
     """Run transcription -> correction -> summarization in background."""
     session = sessions[session_id]
     result_id = _result_id_from_session(session_id)
@@ -123,7 +123,7 @@ async def _run_pipeline(session_id: str, audio_bytes: bytes, filename: str):
         session["steps"]["summarization"] = "processing"
         session["step"] = "summarization"
         t0 = time.time()
-        summary = await llm.summarize_transcript(corrected_transcript)
+        summary = await llm.summarize_transcript(corrected_transcript, doc_type)
         processing_time["summarization"] = round(time.time() - t0, 1)
         session["steps"]["summarization"] = "done"
 
@@ -159,6 +159,7 @@ async def _run_pipeline(session_id: str, audio_bytes: bytes, filename: str):
 async def recording_stop(
     file: UploadFile = File(...),
     session_id: str = Form(...),
+    doc_type: str = Form("befund"),
 ):
     if session_id not in sessions:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -167,7 +168,7 @@ async def recording_stop(
     session["status"] = "processing"
     audio_bytes = await file.read()
 
-    asyncio.create_task(_run_pipeline(session_id, audio_bytes, file.filename or "aufnahme.webm"))
+    asyncio.create_task(_run_pipeline(session_id, audio_bytes, file.filename or "aufnahme.webm", doc_type))
 
     return {
         "session_id": session_id,
@@ -177,7 +178,7 @@ async def recording_stop(
 
 
 @app.post("/api/process")
-async def process_upload(file: UploadFile = File(...)):
+async def process_upload(file: UploadFile = File(...), doc_type: str = Form("befund")):
     session_id = _generate_session_id()
     sessions[session_id] = {
         "status": "processing",
@@ -192,7 +193,7 @@ async def process_upload(file: UploadFile = File(...)):
     }
 
     audio_bytes = await file.read()
-    asyncio.create_task(_run_pipeline(session_id, audio_bytes, file.filename or "upload.webm"))
+    asyncio.create_task(_run_pipeline(session_id, audio_bytes, file.filename or "upload.webm", doc_type))
 
     return {
         "session_id": session_id,
