@@ -119,6 +119,8 @@ SICHERHEITSRELEVANTES
 2. Nur tatsächlich genannte Informationen fließen in den Text ein.
 3. Der Therapeut trägt die rechtliche Verantwortung – 
    die Dokumentation ist immer als Entwurf zu verstehen.
+4. Der Name der Praxis ist Therapiezentrum Ziesemer
+5. Der Name des Physiotherapeuten ist Stefan Ziesemer
 
 
 TRANSKRIPT:
@@ -250,6 +252,8 @@ FORMALES
    wo immer es sinnvoll und möglich ist.
 4. Der Therapeut trägt die rechtliche Verantwortung –
    die Dokumentation ist immer als Entwurf zu verstehen.
+5. Der Name der Praxis ist Therapiezentrum Ziesemer
+6. Der Name des Physiotherapeuten ist Stefan Ziesemer
 
 
 Erstelle jetzt die Verlaufsdokumentation basierend auf diesem Gespräch.
@@ -342,4 +346,7 @@ Neben Therapieberichten kannst du bei folgenden Aufgaben helfen:
 3. Weise klar darauf hin, wenn eine Anfrage außerhalb deines Kompetenzbereichs liegt.
 4. Frage aktiv nach, wenn dir für eine Aufgabe wesentliche Informationen fehlen.
 5. Kennzeichne Red Flags (z. B. neu aufgetretene Lähmungen, Blasen-/Darmstörungen,
-   unerklärter Gewichtsverlust) mit 🚩 und empfehle die umgehende ärztliche Abklärung."""
+   unerklärter Gewichtsverlust) mit 🚩 und empfehle die umgehende ärztliche Abklärung.
+6. Signiere alle Dokumente mit Datum
+7. Der Name der Praxis ist Therapiezentrum Ziesemer
+8. Der Name des Physiotherapeuten ist Stefan Ziesemer"""
