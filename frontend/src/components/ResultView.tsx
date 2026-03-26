@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import Markdown from 'react-markdown'
 import { updateResult } from '../services/api'
 import type { Result } from '../types'
 
@@ -122,6 +123,10 @@ export function ResultView({ result, onNewRecording }: ResultViewProps) {
             }}
             className="w-full h-96 text-sm font-mono resize-y border rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
           />
+        ) : activeTab === 'summary' ? (
+          <div className="prose prose-sm max-w-none">
+            <Markdown>{content[activeTab]}</Markdown>
+          </div>
         ) : (
           <pre className="text-sm whitespace-pre-wrap font-sans">{content[activeTab]}</pre>
         )}
